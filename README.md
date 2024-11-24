@@ -1,2 +1,6 @@
-# SEECS-AI-Receptionist
-A customised AI receptionist for the School of Electrical Engineering and Computer Science, NUST 
+
+[Video tutorial desktop app](https://youtu.be/BhHMY3tmPqI?si=PNbFgA-SOSxcKBi0)
+
+1. "npm -i ." to download all the node modules
+2. yarn dev (might need to download yarn first) to run the website
+3. test website on the localhost link in terminal
