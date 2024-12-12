@@ -8,7 +8,6 @@ export const Experience = () => {
 
   return (
     <>
-      <OrbitControls />
       <Avatar position={[0, -3, 5]} scale={2} />
       <Environment preset="sunset" />
       <mesh>
