@@ -1,7 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { Experience } from "./components/Experience";
 import ChatOverlay from "./components/ChatOverlay";
-import "./styles/ChatOverlay.css";
 
 function App() {
   return (
