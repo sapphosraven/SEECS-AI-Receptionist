@@ -2,28 +2,49 @@ import React, { useState } from "react";
 
 function ChatOverlay() {
   const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState([]); // Stores chat history
+  const [input, setInput] = useState(""); // Input value
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false); // Tracks if waiting for response
+
+  // Simulates chatbot response (replace with actual API call if needed)
+  const getChatbotResponse = (userMessage) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(`AI: Response to '${userMessage}'`);
+      }, 1000); // Simulate 1s delay
+    });
+  };
+
+  const handleSend = async () => {
+    if (!input.trim() || isWaitingForResponse) return;
+
+    const userMessage = `User: ${input}`;
+    setHistory((prev) => [...prev, userMessage]); // Add user message to history
+    setInput(""); // Clear input
+    setIsWaitingForResponse(true); // Block further input
+
+    // Fetch chatbot response
+    const botResponse = await getChatbotResponse(input);
+    setHistory((prev) => [...prev, botResponse]); // Add bot response to history
+    setIsWaitingForResponse(false); // Allow further input
+  };
 
   return (
     <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-end items-start pointer-events-none">
       {/* History Panel */}
       {showHistory && (
-        <div className="absolute top-0 left-0 w-1/5 h-full bg-blue-900 text-white flex flex-col items-center p-2 shadow-lg pointer-events-auto">
-          <h3 className="text-lg font-bold text-center h-8 flex items-center justify-center">
-            LOGO
-          </h3>
-          <div className="mt-5 flex flex-col w-full px-2">
-            <div className="mb-2 p-2 bg-white/10 rounded cursor-pointer">
-              AI: Hey! how are you doing?
-            </div>
-            <div className="mb-2 p-2 bg-white/10 rounded cursor-pointer">
-              user: Great! Can you help me out?
-            </div>
-            <div className="mb-2 p-2 bg-white/10 rounded cursor-pointer">
-              AI: Hey! how are you doing?
-            </div>
-            <div className="mb-2 p-2 bg-white/10 rounded cursor-pointer">
-              user: Great! Can you help me out?
-            </div>
+        <div className="absolute top-0 left-0 w-1/5 h-full bg-white text-white flex flex-col items-center p-2 shadow-lg pointer-events-auto">
+          <img className="" src="../../public/textures/nust-seecs.png">
+          </img>
+          <div className="mt-5 flex flex-col w-full px-2 overflow-y-auto">
+            {history.map((message, index) => (
+              <div
+                key={index}
+                className={`mb-2 p-2 rounded cursor-pointer text-sm max-w-[90%] ${message.startsWith("User:") ? "bg-blue-500 text-white self-end" : "bg-gray-200 text-black self-start"}`}
+              >
+                {message.replace("User: ", "").replace("AI: ", "")}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -33,7 +54,7 @@ function ChatOverlay() {
         className="absolute top-2 left-[22%] bg-blue-900 text-white px-4 py-2 rounded shadow-md cursor-pointer pointer-events-auto"
         onClick={() => setShowHistory(!showHistory)}
       >
-        {showHistory ? "ICON" : "ICON"}
+        {showHistory ? "Close" : "Open"}
       </button>
 
       {/* Chat Input */}
@@ -41,9 +62,16 @@ function ChatOverlay() {
         <input
           type="text"
           placeholder="Type a message..."
-          className="flex-1 h-full px-4 text-sm rounded-l-full border-none outline-none"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={isWaitingForResponse}
+          className="flex-1 h-full px-4 text-sm rounded-l-full border-none outline-none cursor-default"
         />
-        <button className="h-full px-5 bg-blue-900 text-white rounded-r-full text-sm cursor-pointer">
+        <button
+          onClick={handleSend}
+          disabled={isWaitingForResponse}
+          className="h-full px-5 bg-green-700 text-white rounded-r-full text-sm cursor-pointer disabled:opacity-50"
+        >
           Send
         </button>
       </div>
