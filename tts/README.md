@@ -89,11 +89,6 @@ python text_to_speech_gtts.py
 python text_to_speech_transformers.py
 ```
 
-## Configuration
-To specify which TTS backend to prioritize, modify the `text_to_speech.py` script to include:
-```python
-
-```
 
 ## Contributing
 Feel free to fork this repository and submit pull requests for improvements or additional features.
