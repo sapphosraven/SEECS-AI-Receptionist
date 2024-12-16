@@ -1,7 +1,6 @@
 # Text-to-Speech (TTS) Setup Guide
 
-This project contains multiple TTS modules with `text_to_speech.py` serving as the main entry point. The other TTS implementations act as substitutes to handle specific use cases or provide alternative functionalities.
-
+This project contains multiple TTS modules with `text_to_speech.py` serving as the main entry point. The other TTS implementations are what we have worked on during the project
 ## Files Overview
 
 1. **`text_to_speech.py`** (Main TTS)
@@ -22,20 +21,8 @@ This project contains multiple TTS modules with `text_to_speech.py` serving as t
 
 ## Prerequisites
 
-- **Python**: Version 3.8 or higher
+- **Python**: Version 3.8 or higher (<=3.11)
 - **Pip**: Ensure the latest version is installed
-
-## Installation
-
-1. Clone or download the repository.
-2. Navigate to the project directory:
-   ```bash
-   cd path/to/project
-   ```
-3. Install the required dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
 
 ### Required Libraries
 - Common:
@@ -66,7 +53,7 @@ Run the main TTS script:
 ```bash
 python text_to_speech.py
 ```
-This script automatically selects the appropriate TTS module based on the input configuration or fallback strategy.
+This script is the main script.Other scripts are a substitute which we have worked on 
 
 ### Substitute Scripts
 Run any substitute module directly if needed:
