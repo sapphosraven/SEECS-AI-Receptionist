@@ -1,30 +1,13 @@
-import { useAnimations, useFBX, useGLTF } from "@react-three/drei";
-import { useFrame, useLoader } from "@react-three/fiber";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import * as THREE from "three";
-
-const corresponding = {
-  A: "viseme_PP",
-  B: "viseme_kk",
-  C: "viseme_I",
-  D: "viseme_AA",
-  E: "viseme_O",
-  F: "viseme_U",
-  G: "viseme_FF",
-  H: "viseme_TH",
-  X: "viseme_PP",
-};
-
 export function Avatar(props) {
-  const [playAudio, setPlayAudio] = useState(false);
-  const [audioInput, setAudioInput] = useState("welcome");
-
-  const audio = useMemo(() => new Audio(`/audios/${audioInput}.mp3`), [audioInput]);
-  const jsonFile = useLoader(THREE.FileLoader, `audios/${audioInput}.json`);
-  const lipsync = JSON.parse(jsonFile);
-
-  const morphTargetSmoothing = 0.5;
+  const playAudio = false;
+  const script = "welcome";
+  const headFollow = true;
   const smoothMorphTarget = true;
+  const morphTargetSmoothing = 0.5;
+
+  const audio = useMemo(() => new Audio(`/audios/${script}.mp3`), [script]);
+  const jsonFile = useLoader(THREE.FileLoader, `audios/${script}.json`);
+  const lipsync = JSON.parse(jsonFile);
 
   useFrame(() => {
     const currentAudioTime = audio.currentTime;
@@ -34,49 +17,81 @@ export function Avatar(props) {
     }
 
     Object.values(corresponding).forEach((value) => {
-      nodes.Wolf3D_Head.morphTargetInfluences[
-        nodes.Wolf3D_Head.morphTargetDictionary[value]
-      ] = THREE.MathUtils.lerp(
+      if (!smoothMorphTarget) {
         nodes.Wolf3D_Head.morphTargetInfluences[
-        nodes.Wolf3D_Head.morphTargetDictionary[value]
-        ],
-        0,
-        morphTargetSmoothing
-      );
-
-      nodes.Wolf3D_Teeth.morphTargetInfluences[
-        nodes.Wolf3D_Teeth.morphTargetDictionary[value]
-      ] = THREE.MathUtils.lerp(
+          nodes.Wolf3D_Head.morphTargetDictionary[value]
+        ] = 0;
         nodes.Wolf3D_Teeth.morphTargetInfluences[
-        nodes.Wolf3D_Teeth.morphTargetDictionary[value]
-        ],
-        0,
-        morphTargetSmoothing
-      );
+          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
+        ] = 0;
+      } else {
+        nodes.Wolf3D_Head.morphTargetInfluences[
+          nodes.Wolf3D_Head.morphTargetDictionary[value]
+        ] = THREE.MathUtils.lerp(
+          nodes.Wolf3D_Head.morphTargetInfluences[
+          nodes.Wolf3D_Head.morphTargetDictionary[value]
+          ],
+          0,
+          morphTargetSmoothing
+        );
+
+        nodes.Wolf3D_Teeth.morphTargetInfluences[
+          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
+        ] = THREE.MathUtils.lerp(
+          nodes.Wolf3D_Teeth.morphTargetInfluences[
+          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
+          ],
+          0,
+          morphTargetSmoothing
+        );
+      }
     });
 
     for (let i = 0; i < lipsync.mouthCues.length; i++) {
       const mouthCue = lipsync.mouthCues[i];
-      if (currentAudioTime >= mouthCue.start && currentAudioTime <= mouthCue.end) {
-        nodes.Wolf3D_Head.morphTargetInfluences[
-          nodes.Wolf3D_Head.morphTargetDictionary[corresponding[mouthCue.value]]
-        ] = THREE.MathUtils.lerp(
+      if (
+        currentAudioTime >= mouthCue.start &&
+        currentAudioTime <= mouthCue.end
+      ) {
+        if (!smoothMorphTarget) {
           nodes.Wolf3D_Head.morphTargetInfluences[
-          nodes.Wolf3D_Head.morphTargetDictionary[corresponding[mouthCue.value]]
-          ],
-          1,
-          morphTargetSmoothing
-        );
-
-        nodes.Wolf3D_Teeth.morphTargetInfluences[
-          nodes.Wolf3D_Teeth.morphTargetDictionary[corresponding[mouthCue.value]]
-        ] = THREE.MathUtils.lerp(
+            nodes.Wolf3D_Head.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+          ] = 1;
           nodes.Wolf3D_Teeth.morphTargetInfluences[
-          nodes.Wolf3D_Teeth.morphTargetDictionary[corresponding[mouthCue.value]]
-          ],
-          1,
-          morphTargetSmoothing
-        );
+            nodes.Wolf3D_Teeth.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+          ] = 1;
+        } else {
+          nodes.Wolf3D_Head.morphTargetInfluences[
+            nodes.Wolf3D_Head.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+          ] = THREE.MathUtils.lerp(
+            nodes.Wolf3D_Head.morphTargetInfluences[
+            nodes.Wolf3D_Head.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+            ],
+            1,
+            morphTargetSmoothing
+          );
+          nodes.Wolf3D_Teeth.morphTargetInfluences[
+            nodes.Wolf3D_Teeth.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+          ] = THREE.MathUtils.lerp(
+            nodes.Wolf3D_Teeth.morphTargetInfluences[
+            nodes.Wolf3D_Teeth.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+            ],
+            1,
+            morphTargetSmoothing
+          );
+        }
 
         break;
       }
@@ -84,19 +99,34 @@ export function Avatar(props) {
   });
 
   useEffect(() => {
+    console.log(nodes.Wolf3D_Head.morphTargetDictionary);
+    nodes.Wolf3D_Head.morphTargetInfluences[
+      nodes.Wolf3D_Head.morphTargetDictionary["viseme_I"]
+    ] = 1;
+    nodes.Wolf3D_Teeth.morphTargetInfluences[
+      nodes.Wolf3D_Teeth.morphTargetDictionary["viseme_I"]
+    ] = 1;
     if (playAudio) {
       audio.play();
-      setAnimation(audioInput === "welcome" ? "Greeting" : "Angry");
+      if (script === "welcome") {
+        setAnimation("Greeting");
+      } else {
+        setAnimation("Angry");
+      }
     } else {
       setAnimation("Idle");
       audio.pause();
     }
-  }, [playAudio, audioInput]);
+  }, [playAudio, script]);
 
-  const { nodes, materials } = useGLTF("/models/6756925445930c8e27250183.glb");
+  const { nodes, materials } = useGLTF("/models/673fb6204788fd52690ac86e.glb");
   const { animations: idleAnimation } = useFBX("/animations/Idle.fbx");
-  const { animations: angryAnimation } = useFBX("/animations/Angry Gesture.fbx");
-  const { animations: greetingAnimation } = useFBX("/animations/Standing Greeting.fbx");
+  const { animations: angryAnimation } = useFBX(
+    "/animations/Angry Gesture.fbx"
+  );
+  const { animations: greetingAnimation } = useFBX(
+    "/animations/Standing Greeting.fbx"
+  );
 
   idleAnimation[0].name = "Idle";
   angryAnimation[0].name = "Angry";
@@ -116,13 +146,10 @@ export function Avatar(props) {
   }, [animation]);
 
   useFrame((state) => {
-    group.current.getObjectByName("Head").lookAt(state.camera.position);
+    if (headFollow) {
+      group.current.getObjectByName("Head").lookAt(state.camera.position);
+    }
   });
-
-  const handlePlayAudio = (audioFile) => {
-    setAudioInput(audioFile || "welcome");
-    setPlayAudio(true);
-  };
 
   return (
     <group {...props} dispose={null} ref={group}>
@@ -172,12 +199,12 @@ export function Avatar(props) {
         morphTargetInfluences={nodes.Wolf3D_Head.morphTargetInfluences}
       />
       <skinnedMesh
-        name="Wolf3D_Headwear"
-        geometry={nodes.Wolf3D_Headwear.geometry}
-        material={materials.Wolf3D_Headwear}
-        skeleton={nodes.Wolf3D_Headwear.skeleton}
-        morphTargetDictionary={nodes.Wolf3D_Headwear.morphTargetDictionary}
-        morphTargetInfluences={nodes.Wolf3D_Headwear.morphTargetInfluences}
+        name="Wolf3D_Hair"
+        geometry={nodes.Wolf3D_Hair.geometry}
+        material={materials.Wolf3D_Hair}
+        skeleton={nodes.Wolf3D_Hair.skeleton}
+        morphTargetDictionary={nodes.Wolf3D_Hair.morphTargetDictionary}
+        morphTargetInfluences={nodes.Wolf3D_Hair.morphTargetInfluences}
       />
       <skinnedMesh
         name="Wolf3D_Teeth"
@@ -191,4 +218,6 @@ export function Avatar(props) {
   );
 }
 
-useGLTF.preload("https://models.readyplayer.me/65a8dba831b23abb4f401bae.glb?lod=2&textureAtlas=none");
+useGLTF.preload(
+  "https://models.readyplayer.me/65a8dba831b23abb4f401bae.glb?lod=2&textureAtlas=none"
+);

@@ -32,33 +32,40 @@ function ChatOverlay() {
   return (
     <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-end items-start pointer-events-none">
       {/* History Panel */}
-      {showHistory && (
-        <div className="absolute top-0 left-0 w-1/5 h-full bg-white text-white flex flex-col items-center p-2 shadow-lg pointer-events-auto">
-          <img className="" src="../../public/textures/nust-seecs.png">
-          </img>
-          <div className="mt-5 flex flex-col w-full px-2 overflow-y-auto">
-            {history.map((message, index) => (
-              <div
-                key={index}
-                className={`mb-2 p-2 rounded cursor-pointer text-sm max-w-[90%] ${message.startsWith("User:") ? "bg-blue-500 text-white self-end" : "bg-gray-200 text-black self-start"}`}
-              >
-                {message.replace("User: ", "").replace("AI: ", "")}
-              </div>
-            ))}
-          </div>
+      <div
+        className={`absolute top-0 left-0 h-full bg-white text-black flex flex-col items-center p-2 shadow-lg pointer-events-auto transition-transform duration-300 ${showHistory ? "translate-x-0" : "-translate-x-full"
+          }`}
+        style={{ width: "20%" }}
+      >
+        <img src="../../public/textures/nust-seecs.png" alt="NUST SEECS" />
+        <div className="mt-5 flex flex-col w-full px-2 overflow-y-auto">
+          {history.map((message, index) => (
+            <div
+              key={index}
+              className={`mb-2 p-2 rounded cursor-pointer text-sm max-w-[90%] ${message.startsWith("User:") ? "bg-blue-500 text-white self-end" : "bg-gray-200 text-black self-start"
+                }`}
+            >
+              {message.replace("User: ", "").replace("AI: ", "")}
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Toggle Button */}
       <button
-        className="absolute top-2 left-[22%] bg-blue-900 text-white px-4 py-2 rounded shadow-md cursor-pointer pointer-events-auto"
+        className={`absolute top-2 transition-transform duration-300 ${showHistory ? "translate-x-[80px]" : "translate-x-0"
+          } bg-blue-900 text-white px-4 py-2 rounded shadow-md cursor-pointer pointer-events-auto`}
+        style={{ left: "20px" }} // Fixed position to anchor the slide
         onClick={() => setShowHistory(!showHistory)}
       >
         {showHistory ? "Close" : "Chat Log"}
       </button>
 
       {/* Chat Input */}
-      <div className="absolute bottom-5 left-1/2 transform -translate-x-1/2 w-3/5 h-12 flex items-center bg-white rounded-full shadow-md pointer-events-auto">
+      <div
+        className={`absolute bottom-5 transition-transform duration-300 left-1/2 transform ${showHistory ? "-translate-x-[35%]" : "-translate-x-1/2"
+          } w-3/5 h-12 flex items-center bg-white rounded-full shadow-md pointer-events-auto`}
+      >
         <input
           type="text"
           placeholder="Type a message..."
