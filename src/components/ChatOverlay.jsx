@@ -54,7 +54,7 @@ function ChatOverlay() {
         className="absolute top-2 left-[22%] bg-blue-900 text-white px-4 py-2 rounded shadow-md cursor-pointer pointer-events-auto"
         onClick={() => setShowHistory(!showHistory)}
       >
-        {showHistory ? "Close" : "Open"}
+        {showHistory ? "Close" : "Chat Log"}
       </button>
 
       {/* Chat Input */}
@@ -65,7 +65,7 @@ function ChatOverlay() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isWaitingForResponse}
-          className="flex-1 h-full px-4 text-sm rounded-l-full border-none outline-none cursor-default"
+          className="flex-1 h-full px-4 text-sm rounded-l-full border-none outline-none cursor-pointer"
         />
         <button
           onClick={handleSend}
