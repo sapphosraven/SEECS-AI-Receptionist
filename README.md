@@ -1,6 +1,6 @@
 # Lip Synching Branch
 
-This branch implements lip synching using two approaches in Unity:
+The branch (Lip-Syncing-manually-using-json) implements lip synching using two approaches in Unity:
 
 ## 1. Oculcs-Based Lip Synching
 - **Expected Input**: Audio file (provided by TTS-STT team).
