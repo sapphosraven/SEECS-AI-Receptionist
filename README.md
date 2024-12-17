@@ -13,4 +13,4 @@ This branch implements lip synching using two approaches in Unity:
 
 ## Note
 - Any of the two mentioned approaches that works better for integration can be used.
-- Any further change expected and integration is supposed to be perform by Integration team/Team 0.
+- Any further change expected and integration is supposed to be done by Integration team/Team 0.
