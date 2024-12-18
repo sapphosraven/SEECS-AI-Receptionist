@@ -9,7 +9,7 @@ The branch (Lip-Syncing-manually-using-json) implements lip synching using two a
 ## 2. Manual Lip Synching
 - **Expected Input**: JSON file with time markers and mouth movements.
 - **Function**: Maps time markers to lip movements using a mapping dictionary.
-- **Format**: The JSON file must follow this structure:
+- **Format**: The JSON file must follow the sample format present in file named as "phoneme_time_marker.json" in our repo.
 
 ## Note
 - Any of the two mentioned approaches that works better for integration can be used.
