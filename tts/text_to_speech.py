@@ -1,34 +1,25 @@
 import pyttsx3
-from pydub import AudioSegment
 from phonemizer import phonemize
-def textToSpeech(text):
-    # Initialize Text-to-Speech engine
+from phonemizer.backend.espeak.wrapper import EspeakWrapper
+
+EspeakWrapper.set_library('C:\Program Files\eSpeak NG\libespeak-ng.dll')
+
+def text_to_speech(text,phonemes_file='phoneme.txt', rate = 145 , volume = 1.0):
+    # engine = pyttsx3.init(driverName='sapi5')
     engine = pyttsx3.init()
-
-    # Set properties
-    engine.setProperty("rate", 145)
-    engine.setProperty("volume" , 0)
-    # Text to be converted to speech
+    # Get available voices
+    voices = engine.getProperty('voices')
     phonemes = phonemize(text, language='en-us', backend='espeak', strip=True)
-    print("Phonemes:", phonemes)
-
-    engine.say(text)
-    # Save the speech as an .aiff file
-    engine.setProperty("volume" , 100)
-    engine.save_to_file(text, 'test.aiff')
-
-    # Run the engine
+    with open(phonemes_file, 'w') as file:
+            file.write(phonemes)
+    print(f"Phonemes saved to {phonemes_file}")
+    # Select a specific voice (e.g., first available voice)
+    engine.setProperty('voice', voices[0].id)
+    engine.setProperty('rate', rate) 
+    engine.setProperty('volume', volume)
+    engine.save_to_file(text , 'output.mp3')
     engine.runAndWait()
+    print(f"Audio saved to output.mp3 successfully")
 
-    # Convert the .aiff file to .mp3
-    try:
-        # Load the .aiff file
-        audio = AudioSegment.from_file("test.aiff", format="aiff")
-        
-        # Export as .mp3
-        audio.export("test.mp3", format="mp3")
-        print("Conversion successful! Saved to test.mp3")
-    except Exception as e:
-        print(f"An error occurred during conversion: {e}")
-text = 'Quick Brown fox'
-textToSpeech(text)
+text = "Hello! This is a test of the SAPI5 Text-to-Speech engine."
+text_to_speech(text)
