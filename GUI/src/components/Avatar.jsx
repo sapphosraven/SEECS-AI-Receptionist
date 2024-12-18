@@ -1,3 +1,19 @@
+import { useAnimations, useFBX, useGLTF } from "@react-three/drei";
+import { useFrame, useLoader } from "@react-three/fiber";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import * as THREE from "three";
+const corresponding = {
+  A: "viseme_PP",
+  B: "viseme_kk",
+  C: "viseme_I",
+  D: "viseme_AA",
+  E: "viseme_O",
+  F: "viseme_U",
+  G: "viseme_FF",
+  H: "viseme_TH",
+  X: "viseme_PP",
+};
+
 export function Avatar(props) {
   const playAudio = false;
   const script = "welcome";
