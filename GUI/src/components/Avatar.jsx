@@ -11,7 +11,7 @@ const corresponding = {
   F: "viseme_U",
   G: "viseme_FF",
   H: "viseme_TH",
-  X: "viseme_PP",
+  X: "viseme_PP",
 };
 
 export function Avatar(props) {
@@ -45,7 +45,7 @@ export function Avatar(props) {
           nodes.Wolf3D_Head.morphTargetDictionary[value]
         ] = THREE.MathUtils.lerp(
           nodes.Wolf3D_Head.morphTargetInfluences[
-          nodes.Wolf3D_Head.morphTargetDictionary[value]
+            nodes.Wolf3D_Head.morphTargetDictionary[value]
           ],
           0,
           morphTargetSmoothing
@@ -55,7 +55,7 @@ export function Avatar(props) {
           nodes.Wolf3D_Teeth.morphTargetDictionary[value]
         ] = THREE.MathUtils.lerp(
           nodes.Wolf3D_Teeth.morphTargetInfluences[
-          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
+            nodes.Wolf3D_Teeth.morphTargetDictionary[value]
           ],
           0,
           morphTargetSmoothing
@@ -72,37 +72,37 @@ export function Avatar(props) {
         if (!smoothMorphTarget) {
           nodes.Wolf3D_Head.morphTargetInfluences[
             nodes.Wolf3D_Head.morphTargetDictionary[
-            corresponding[mouthCue.value]
+              corresponding[mouthCue.value]
             ]
           ] = 1;
           nodes.Wolf3D_Teeth.morphTargetInfluences[
             nodes.Wolf3D_Teeth.morphTargetDictionary[
-            corresponding[mouthCue.value]
+              corresponding[mouthCue.value]
             ]
           ] = 1;
         } else {
           nodes.Wolf3D_Head.morphTargetInfluences[
             nodes.Wolf3D_Head.morphTargetDictionary[
-            corresponding[mouthCue.value]
+              corresponding[mouthCue.value]
             ]
           ] = THREE.MathUtils.lerp(
             nodes.Wolf3D_Head.morphTargetInfluences[
-            nodes.Wolf3D_Head.morphTargetDictionary[
-            corresponding[mouthCue.value]
-            ]
+              nodes.Wolf3D_Head.morphTargetDictionary[
+                corresponding[mouthCue.value]
+              ]
             ],
             1,
             morphTargetSmoothing
           );
           nodes.Wolf3D_Teeth.morphTargetInfluences[
             nodes.Wolf3D_Teeth.morphTargetDictionary[
-            corresponding[mouthCue.value]
+              corresponding[mouthCue.value]
             ]
           ] = THREE.MathUtils.lerp(
             nodes.Wolf3D_Teeth.morphTargetInfluences[
-            nodes.Wolf3D_Teeth.morphTargetDictionary[
-            corresponding[mouthCue.value]
-            ]
+              nodes.Wolf3D_Teeth.morphTargetDictionary[
+                corresponding[mouthCue.value]
+              ]
             ],
             1,
             morphTargetSmoothing
