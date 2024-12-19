@@ -6,7 +6,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # Set up ngrok URL for the LLM API
-NGROK_URL = "https://34bc-34-42-131-253.ngrok-free.app"  # Replace with your ngrok URL
+NGROK_URL = "https://46e4-34-42-131-253.ngrok-free.app"  # Replace with your ngrok URL
 
 def query_server(query):
     """Send a query to the Flask server."""
