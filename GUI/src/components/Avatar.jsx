@@ -2,48 +2,16 @@ import { useAnimations, useFBX, useGLTF } from "@react-three/drei";
 import { useFrame, useLoader } from "@react-three/fiber";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-// Mapping IPA phonemes to visemes
-const ipaToViseme = {
-  p: "viseme_PP",
-  b: "viseme_PP",
-  m: "viseme_PP",
-  f: "viseme_FF",
-  v: "viseme_FF",
-  θ: "viseme_TH",
-  ð: "viseme_TH",
-  t: "viseme_T",
-  d: "viseme_T",
-  n: "viseme_T",
-  s: "viseme_S",
-  z: "viseme_S",
-  ʃ: "viseme_SH",
-  ʒ: "viseme_SH",
-  k: "viseme_kk",
-  g: "viseme_kk",
-  ŋ: "viseme_kk",
-  h: "viseme_S",
-  l: "viseme_T",
-  r: "viseme_R",
-  j: "viseme_I",
-  w: "viseme_U",
-  i: "viseme_I",
-  ɪ: "viseme_I",
-  e: "viseme_I",
-  ɛ: "viseme_E",
-  æ: "viseme_AA",
-  ɑ: "viseme_AA",
-  ʌ: "viseme_AA",
-  ɔ: "viseme_O",
-  u: "viseme_U",
-  ʊ: "viseme_U",
-  ə: "viseme_AA",
-  aɪ: "viseme_I",
-  aʊ: "viseme_U",
-  ɔɪ: "viseme_I",
-  oʊ: "viseme_O",
-  eɪ: "viseme_I",
-  // Default fallback
-  default: "viseme_AA",
+const corresponding = {
+  A: "viseme_PP",
+  B: "viseme_kk",
+  C: "viseme_I",
+  D: "viseme_AA",
+  E: "viseme_O",
+  F: "viseme_U",
+  G: "viseme_FF",
+  H: "viseme_TH",
+  X: "viseme_PP",
 };
 
 export function Avatar(props) {
