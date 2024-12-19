@@ -15,14 +15,14 @@ const corresponding = {
 };
 
 export function Avatar(props) {
-  const playAudio = false;
+  const playAudio = true;
   const script = "welcome";
   const headFollow = true;
   const smoothMorphTarget = true;
   const morphTargetSmoothing = 0.5;
 
-  const audio = useMemo(() => new Audio(`/audios/${script}.mp3`), [script]);
-  const jsonFile = useLoader(THREE.FileLoader, `audios/${script}.json`);
+  const audio = useMemo(() => new Audio(`/audios/output_1.wav`), [script]);
+  const jsonFile = useLoader(THREE.FileLoader, `audios/output_1.json`);
   const lipsync = JSON.parse(jsonFile);
 
   useFrame(() => {
