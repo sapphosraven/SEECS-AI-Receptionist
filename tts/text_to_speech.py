@@ -1,13 +1,41 @@
 import pyttsx3
-from phonemizer import phonemize
-from phonemizer.backend.espeak.wrapper import EspeakWrapper
-import json
 import os
-from pydub import AudioSegment
+import subprocess
 
-EspeakWrapper.set_library('C:\\Program Files\\eSpeak NG\\libespeak-ng.dll')
+def get_next_output_filename(directory='.\\GUI\\public\\audios'):
+    # Get a list of existing files in the directory
+    existing_files = os.listdir(directory)
+    
+    # Filter out files that start with 'output_' and end with '.wav'
+    output_files = [f for f in existing_files if f.startswith('output_') and f.endswith('.wav')]
+    
+    # If no files exist, start with output_1.wav
+    if not output_files:
+        return os.path.join(directory, 'output_1.wav')
+    
+    # Extract the numbers from the filenames and find the next available number
+    file_numbers = [int(f.split('_')[1].split('.')[0]) for f in output_files]
+    next_number = max(file_numbers) + 1
+    
+    return os.path.join(directory, f'output_{next_number}.wav')
 
-def text_to_speech(text, phonemes_file='phoneme.txt', json_file='phoneme_timestamps.json', rate=145, volume=1.0):
+def generate_lip_sync_json(audio_file):
+    # Get the output JSON filename (same directory as the audio file)
+    json_file = audio_file.replace('.wav', '.json')
+    
+    # Full path to the rhubarb executable
+    rhubarb_path = 'C:\\Program Files\\Rhubarb-Lip-Sync-1.13.0-Windows\\rhubarb.exe'
+    
+    # Run the rhubarb command to generate the lip-sync JSON
+    rhubarb_command = f'"{rhubarb_path}" {audio_file} --exportFormat json --output {json_file}'
+    try:
+        subprocess.run(rhubarb_command, check=True, shell=True)
+        print(f"Lip sync JSON saved to {json_file}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error generating lip-sync JSON: {e}")
+
+
+def text_to_speech(text, rate=145, volume=1.0):
     # Initialize pyttsx3 engine
     engine = pyttsx3.init()
     
@@ -17,46 +45,17 @@ def text_to_speech(text, phonemes_file='phoneme.txt', json_file='phoneme_timesta
     engine.setProperty('rate', rate)
     engine.setProperty('volume', volume)
     
-    # Generate phoneme sequence using phonemizer
-    phonemes = phonemize(text, language='en-us', backend='espeak', strip=True)
-    
-    # Save phonemes to a file
-    with open(phonemes_file, 'w') as file:
-        file.write(phonemes)
-    print(f"Phonemes saved to {phonemes_file}")
-    
-    # Save the speech to a .wav file
-    engine.save_to_file(text, 'output.wav')
-    engine.runAndWait()
-    print(f"Audio saved to output.wav successfully")
+    # Get the next output filename for the audio
+    output_filename = get_next_output_filename()
 
-    # Calculate duration of the audio using pydub
-    audio = AudioSegment.from_wav('output.wav')
-    audio_duration = audio.duration_seconds  # Duration in seconds
+    # Save the speech to a .wav file
+    engine.save_to_file(text, output_filename)
+    engine.runAndWait()
+    print(f"Audio saved to {output_filename} successfully")
     
-    # Calculate phoneme timings (approximation)
-    phoneme_list = phonemes.split()
-    num_phonemes = len(phoneme_list)
-    
-    # Calculate the time per phoneme
-    time_per_phoneme = audio_duration / num_phonemes
-    
-    # Create timestamped phoneme data
-    phoneme_timestamps = []
-    for i, phoneme in enumerate(phoneme_list):
-        start_time = i * time_per_phoneme
-        end_time = (i + 1) * time_per_phoneme
-        phoneme_timestamps.append({
-            "phoneme": phoneme,
-            "start": round(start_time, 3),
-            "end": round(end_time, 3)
-        })
-    
-    # Save the timestamped phonemes to a JSON file
-    with open(json_file, 'w') as json_output:
-        json.dump({"phonemes": phoneme_timestamps}, json_output, indent=4)
-    print(f"Phoneme timestamps saved to {json_file}")
+    # Generate the lip sync JSON file using rhubarb
+    generate_lip_sync_json(output_filename)
 
 # Example usage
-text = "Hello! This is a test of the SAPI5 Text-to-Speech engine."
+text = "I was created by the students of BSCS 12 C"
 text_to_speech(text)

@@ -1,0 +1,33 @@
+{
+  "metadata": {
+    "soundFile": "F:\\Uni Stuff\\5th Sem\\AI\\Project\\SEECS-AI-Receptionist\\GUI\\public\\audios\\output_2.wav",
+    "duration": 3.95
+  },
+  "mouthCues": [
+    { "start": 0.00, "end": 0.10, "value": "X" },
+    { "start": 0.10, "end": 0.17, "value": "C" },
+    { "start": 0.17, "end": 0.24, "value": "B" },
+    { "start": 0.24, "end": 0.31, "value": "F" },
+    { "start": 0.31, "end": 0.80, "value": "B" },
+    { "start": 0.80, "end": 0.88, "value": "A" },
+    { "start": 0.88, "end": 0.99, "value": "C" },
+    { "start": 0.99, "end": 1.13, "value": "B" },
+    { "start": 1.13, "end": 1.20, "value": "C" },
+    { "start": 1.20, "end": 1.41, "value": "F" },
+    { "start": 1.41, "end": 1.62, "value": "B" },
+    { "start": 1.62, "end": 1.69, "value": "C" },
+    { "start": 1.69, "end": 1.77, "value": "A" },
+    { "start": 1.77, "end": 1.90, "value": "B" },
+    { "start": 1.90, "end": 2.04, "value": "C" },
+    { "start": 2.04, "end": 2.32, "value": "B" },
+    { "start": 2.32, "end": 2.46, "value": "C" },
+    { "start": 2.46, "end": 2.60, "value": "B" },
+    { "start": 2.60, "end": 2.67, "value": "F" },
+    { "start": 2.67, "end": 2.74, "value": "C" },
+    { "start": 2.74, "end": 2.88, "value": "H" },
+    { "start": 2.88, "end": 3.02, "value": "B" },
+    { "start": 3.02, "end": 3.09, "value": "C" },
+    { "start": 3.09, "end": 3.16, "value": "B" },
+    { "start": 3.16, "end": 3.95, "value": "X" }
+  ]
+}
