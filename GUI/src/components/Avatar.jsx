@@ -21,27 +21,9 @@ export function Avatar(props) {
   const smoothMorphTarget = true;
   const morphTargetSmoothing = 0.5;
 
-  const audio = [];
-  const jsonFile = [];
-  const lipsync = [];
-
-  audio[0] = useMemo(() => new Audio(`/audios/output_1.wav`), [script]);
-  jsonFile[0] = useLoader(THREE.FileLoader, `audios/output_1.json`);
-  try {
-    lipsync[0] = JSON.parse(jsonFile[0]);
-  } catch (error) {
-    console.error("Error parsing JSON for output_1.json:", error);
-  }
-  
-  
-  audio[1] = useMemo(() => new Audio(`/audios/output_2.wav`), [script]);
-  jsonFile[1] = useLoader(THREE.FileLoader, `audios/output_2.json`);
-  try {
-    lipsync[1] = JSON.parse(jsonFile[1]);
-  } catch (error) {
-    console.error("Error parsing JSON for output_2.json:", error);
-  }
-
+  const audio = useMemo(() => new Audio(`/audios/${script}.mp3`), [script]);
+  const jsonFile = useLoader(THREE.FileLoader, `audios/${script}.json`);
+  const lipsync = JSON.parse(jsonFile);
 
   useFrame(() => {
     const currentAudioTime = audio.currentTime;
@@ -141,17 +123,15 @@ export function Avatar(props) {
       nodes.Wolf3D_Teeth.morphTargetDictionary["viseme_I"]
     ] = 1;
     if (playAudio) {
-      audio[0].play();
+      audio.play();
       if (script === "welcome") {
         setAnimation("Greeting");
       } else {
         setAnimation("Angry");
       }
-
-      audio[1].play();
-      setAnimation("Idle");
     } else {
       setAnimation("Idle");
+      audio.pause();
     }
   }, [playAudio, script]);
 
