@@ -6,7 +6,7 @@ function ChatOverlay() {
   const [input, setInput] = useState(""); // Input value
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false); // Tracks if waiting for response
   const [isMicActive, setIsMicActive] = useState(false); // Tracks if mic is active (recording)
- 
+
   // Simulates chatbot response (replace with actual API call if needed)
   const getChatbotResponse = (userMessage) => {
     return new Promise((resolve) => {
@@ -15,7 +15,7 @@ function ChatOverlay() {
       }, 1000); // Simulate 1s delay
     });
   };
-  const isThinking = false;
+
   const handleSend = async () => {
     if (!input.trim() || isWaitingForResponse) return;
 
@@ -28,7 +28,6 @@ function ChatOverlay() {
     const botResponse = await getChatbotResponse(input);
     setHistory((prev) => [...prev, botResponse]); // Add bot response to history
     setIsWaitingForResponse(false); // Allow further input
-    isThinking = true;
   };
 
   const handleMicClick = async () => {
@@ -47,7 +46,7 @@ function ChatOverlay() {
 
       // Set the transcription as input, if available
       if (data.transcription) {
-        console.log(data.transcription)
+        console.log(data.transcription);
       } else {
         console.warn("No transcription received from backend.");
       }
@@ -126,13 +125,8 @@ function ChatOverlay() {
               src="../../public/textures/mic.png"
               alt="Mic"
               className="h-6 w-6"
-              />
+            />
           )}
-          {isThinking && (
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-200 p-3 rounded-full shadow-lg text-center">
-          <span className="text-sm text-black">...</span>
-        </div>
-      )}
         </button>
       </div>
     </div>
