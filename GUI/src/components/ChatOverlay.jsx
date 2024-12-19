@@ -37,7 +37,7 @@ function ChatOverlay() {
           }`}
         style={{ width: "20%" }}
       >
-        <img src="../../public/textures/nust-seecs.png" alt="NUST SEECS" />
+        <img src="../../textures/nust-seecs.png" alt="NUST SEECS" />
         <div className="mt-5 flex flex-col w-full px-2 overflow-y-auto">
           {history.map((message, index) => (
             <div
