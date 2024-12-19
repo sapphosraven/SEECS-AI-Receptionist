@@ -2,64 +2,144 @@ import { useAnimations, useFBX, useGLTF } from "@react-three/drei";
 import { useFrame, useLoader } from "@react-three/fiber";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-
-// Mapping IPA phonemes to visemes
-const ipaToViseme = {
-  p: "viseme_PP",
-  b: "viseme_PP",
-  m: "viseme_PP",
-  f: "viseme_FF",
-  v: "viseme_FF",
-  θ: "viseme_TH",
-  ð: "viseme_TH",
-  t: "viseme_T",
-  d: "viseme_T",
-  n: "viseme_T",
-  s: "viseme_S",
-  z: "viseme_S",
-  ʃ: "viseme_SH",
-  ʒ: "viseme_SH",
-  k: "viseme_kk",
-  g: "viseme_kk",
-  ŋ: "viseme_kk",
-  h: "viseme_S",
-  l: "viseme_T",
-  r: "viseme_R",
-  j: "viseme_I",
-  w: "viseme_U",
-  i: "viseme_I",
-  ɪ: "viseme_I",
-  e: "viseme_I",
-  ɛ: "viseme_E",
-  æ: "viseme_AA",
-  ɑ: "viseme_AA",
-  ʌ: "viseme_AA",
-  ɔ: "viseme_O",
-  u: "viseme_U",
-  ʊ: "viseme_U",
-  ə: "viseme_AA",
-  aɪ: "viseme_I",
-  aʊ: "viseme_U",
-  ɔɪ: "viseme_I",
-  oʊ: "viseme_O",
-  eɪ: "viseme_I",
-  default: "viseme_AA", // Default fallback
+const corresponding = {
+  A: "viseme_PP",
+  B: "viseme_kk",
+  C: "viseme_I",
+  D: "viseme_AA",
+  E: "viseme_O",
+  F: "viseme_U",
+  G: "viseme_FF",
+  H: "viseme_TH",
+  X: "viseme_PP",
 };
 
 export function Avatar(props) {
-  const playAudio = true;
+  const playAudio = false;
   const script = "welcome";
   const headFollow = true;
   const smoothMorphTarget = true;
   const morphTargetSmoothing = 0.5;
 
-  const audio = useMemo(() => new Audio(`/src/output.wav`), []);
-  const jsonFile = useLoader(THREE.FileLoader, `/src/phoneme_timestamps.json`);
-  const phonemeTimestamps = JSON.parse(jsonFile);
+  const audio = useMemo(() => new Audio(`/audios/${script}.mp3`), [script]);
+  const jsonFile = useLoader(THREE.FileLoader, `audios/${script}.json`);
+  const lipsync = JSON.parse(jsonFile);
+
+  useFrame(() => {
+    const currentAudioTime = audio.currentTime;
+    if (audio.paused || audio.ended) {
+      setAnimation("Idle");
+      return;
+    }
+
+    Object.values(corresponding).forEach((value) => {
+      if (!smoothMorphTarget) {
+        nodes.Wolf3D_Head.morphTargetInfluences[
+          nodes.Wolf3D_Head.morphTargetDictionary[value]
+        ] = 0;
+        nodes.Wolf3D_Teeth.morphTargetInfluences[
+          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
+        ] = 0;
+      } else {
+        nodes.Wolf3D_Head.morphTargetInfluences[
+          nodes.Wolf3D_Head.morphTargetDictionary[value]
+        ] = THREE.MathUtils.lerp(
+          nodes.Wolf3D_Head.morphTargetInfluences[
+          nodes.Wolf3D_Head.morphTargetDictionary[value]
+          ],
+          0,
+          morphTargetSmoothing
+        );
+
+        nodes.Wolf3D_Teeth.morphTargetInfluences[
+          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
+        ] = THREE.MathUtils.lerp(
+          nodes.Wolf3D_Teeth.morphTargetInfluences[
+          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
+          ],
+          0,
+          morphTargetSmoothing
+        );
+      }
+    });
+
+    for (let i = 0; i < lipsync.mouthCues.length; i++) {
+      const mouthCue = lipsync.mouthCues[i];
+      if (
+        currentAudioTime >= mouthCue.start &&
+        currentAudioTime <= mouthCue.end
+      ) {
+        if (!smoothMorphTarget) {
+          nodes.Wolf3D_Head.morphTargetInfluences[
+            nodes.Wolf3D_Head.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+          ] = 1;
+          nodes.Wolf3D_Teeth.morphTargetInfluences[
+            nodes.Wolf3D_Teeth.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+          ] = 1;
+        } else {
+          nodes.Wolf3D_Head.morphTargetInfluences[
+            nodes.Wolf3D_Head.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+          ] = THREE.MathUtils.lerp(
+            nodes.Wolf3D_Head.morphTargetInfluences[
+            nodes.Wolf3D_Head.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+            ],
+            1,
+            morphTargetSmoothing
+          );
+          nodes.Wolf3D_Teeth.morphTargetInfluences[
+            nodes.Wolf3D_Teeth.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+          ] = THREE.MathUtils.lerp(
+            nodes.Wolf3D_Teeth.morphTargetInfluences[
+            nodes.Wolf3D_Teeth.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
+            ],
+            1,
+            morphTargetSmoothing
+          );
+        }
+
+        break;
+      }
+    }
+  });
+
+  useEffect(() => {
+    console.log(nodes.Wolf3D_Head.morphTargetDictionary);
+    nodes.Wolf3D_Head.morphTargetInfluences[
+      nodes.Wolf3D_Head.morphTargetDictionary["viseme_I"]
+    ] = 1;
+    nodes.Wolf3D_Teeth.morphTargetInfluences[
+      nodes.Wolf3D_Teeth.morphTargetDictionary["viseme_I"]
+    ] = 1;
+    if (playAudio) {
+      audio.play();
+      if (script === "welcome") {
+        setAnimation("Greeting");
+      } else {
+        setAnimation("Angry");
+      }
+    } else {
+      setAnimation("Idle");
+      audio.pause();
+    }
+  }, [playAudio, script]);
 
   const { nodes, materials } = useGLTF("/models/673fb6204788fd52690ac86e.glb");
   const { animations: idleAnimation } = useFBX("/animations/Idle.fbx");
-  const { animations: angryAnimation } = useFBX("/animations/Angry Gesture.fbx");
+  const { animations: angryAnimation } = useFBX(
+    "/animations/Angry Gesture.fbx"
+  );
   const { animations: greetingAnimation } = useFBX(
     "/animations/Standing Greeting.fbx"
   );
@@ -69,83 +149,12 @@ export function Avatar(props) {
   greetingAnimation[0].name = "Greeting";
 
   const [animation, setAnimation] = useState("Idle");
+
   const group = useRef();
   const { actions } = useAnimations(
     [idleAnimation[0], angryAnimation[0], greetingAnimation[0]],
     group
   );
-
-  // Smooth reset of morph target influences
-  const resetMorphTargets = () => {
-    Object.keys(nodes.Wolf3D_Head.morphTargetDictionary).forEach((key) => {
-      const targetIndex = nodes.Wolf3D_Head.morphTargetDictionary[key];
-      nodes.Wolf3D_Head.morphTargetInfluences[targetIndex] = smoothMorphTarget
-        ? THREE.MathUtils.lerp(
-            nodes.Wolf3D_Head.morphTargetInfluences[targetIndex],
-            0,
-            morphTargetSmoothing
-          )
-        : 0;
-
-      nodes.Wolf3D_Teeth.morphTargetInfluences[targetIndex] = smoothMorphTarget
-        ? THREE.MathUtils.lerp(
-            nodes.Wolf3D_Teeth.morphTargetInfluences[targetIndex],
-            0,
-            morphTargetSmoothing
-          )
-        : 0;
-    });
-  };
-
-  useEffect(() => {
-
-    if (1) {
-      audio.play();
-      setAnimation(script === "welcome" ? "Greeting" : "Angry");
-    } else {
-      audio.pause();
-      setAnimation("Idle");
-    }
-
-    return () => audio.pause();
-  }, [playAudio, script]);
-
-  useFrame(() => {
-    const currentAudioTime = audio.currentTime;
-
-    if (audio.paused || audio.ended) {
-      setAnimation("Idle");
-      resetMorphTargets();
-      return;
-    }
-
-    resetMorphTargets();
-
-    // Apply morph targets based on phoneme timestamps
-    phonemeTimestamps.phonemes.forEach(({ phoneme, start, end }) => {
-      if (currentAudioTime >= start && currentAudioTime <= end) {
-        const viseme =
-          ipaToViseme[phoneme] || ipaToViseme["default"];
-        const visemeIndex = nodes.Wolf3D_Head.morphTargetDictionary[viseme];
-
-        nodes.Wolf3D_Head.morphTargetInfluences[visemeIndex] = smoothMorphTarget
-          ? THREE.MathUtils.lerp(
-              nodes.Wolf3D_Head.morphTargetInfluences[visemeIndex],
-              1,
-              morphTargetSmoothing
-            )
-          : 1;
-
-        nodes.Wolf3D_Teeth.morphTargetInfluences[visemeIndex] = smoothMorphTarget
-          ? THREE.MathUtils.lerp(
-              nodes.Wolf3D_Teeth.morphTargetInfluences[visemeIndex],
-              1,
-              morphTargetSmoothing
-            )
-          : 1;
-      }
-    });
-  });
 
   useEffect(() => {
     actions[animation].reset().fadeIn(0.5).play();
@@ -181,7 +190,7 @@ export function Avatar(props) {
         material={materials.Wolf3D_Outfit_Top}
         skeleton={nodes.Wolf3D_Outfit_Top.skeleton}
       />
-         <skinnedMesh
+      <skinnedMesh
         name="EyeLeft"
         geometry={nodes.EyeLeft.geometry}
         material={materials.Wolf3D_Eye}
@@ -197,14 +206,6 @@ export function Avatar(props) {
         morphTargetDictionary={nodes.EyeRight.morphTargetDictionary}
         morphTargetInfluences={nodes.EyeRight.morphTargetInfluences}
       />
-       <skinnedMesh
-        name="Wolf3D_Hair"
-        geometry={nodes.Wolf3D_Hair.geometry}
-        material={materials.Wolf3D_Hair}
-        skeleton={nodes.Wolf3D_Hair.skeleton}
-        morphTargetDictionary={nodes.Wolf3D_Hair.morphTargetDictionary}
-        morphTargetInfluences={nodes.Wolf3D_Hair.morphTargetInfluences}
-      />
       <skinnedMesh
         name="Wolf3D_Head"
         geometry={nodes.Wolf3D_Head.geometry}
@@ -212,6 +213,14 @@ export function Avatar(props) {
         skeleton={nodes.Wolf3D_Head.skeleton}
         morphTargetDictionary={nodes.Wolf3D_Head.morphTargetDictionary}
         morphTargetInfluences={nodes.Wolf3D_Head.morphTargetInfluences}
+      />
+      <skinnedMesh
+        name="Wolf3D_Hair"
+        geometry={nodes.Wolf3D_Hair.geometry}
+        material={materials.Wolf3D_Hair}
+        skeleton={nodes.Wolf3D_Hair.skeleton}
+        morphTargetDictionary={nodes.Wolf3D_Hair.morphTargetDictionary}
+        morphTargetInfluences={nodes.Wolf3D_Hair.morphTargetInfluences}
       />
       <skinnedMesh
         name="Wolf3D_Teeth"
