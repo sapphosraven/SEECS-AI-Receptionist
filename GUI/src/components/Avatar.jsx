@@ -122,7 +122,7 @@ export function Avatar(props) {
     nodes.Wolf3D_Teeth.morphTargetInfluences[
       nodes.Wolf3D_Teeth.morphTargetDictionary["viseme_I"]
     ] = 1;
-    if (playAudio) {
+    if (1) {
       audio.play();
       if (script === "welcome") {
         setAnimation("Greeting");
