@@ -53,20 +53,17 @@ export function Avatar(props) {
   const smoothMorphTarget = true;
   const morphTargetSmoothing = 0.5;
 
-  const audio = useMemo(() => new Audio(`/src/output.wav`), []);
-  const jsonFile = useLoader(THREE.FileLoader, `/src/phoneme_timestamps.json`);
-  const phonemeTimestamps = JSON.parse(jsonFile);
+  const audio = useMemo(() => new Audio(`/audios/${script}.mp3`), [script]);
+  const jsonFile = useLoader(THREE.FileLoader, `audios/${script}.json`);
+  const lipsync = JSON.parse(jsonFile);
 
   useFrame(() => {
     const currentAudioTime = audio.currentTime;
-  
-    // If audio is paused or ended, set animation to Idle
     if (audio.paused || audio.ended) {
       setAnimation("Idle");
       return;
     }
-  
-    // Reset morph targets for head and teeth if not smoothing
+
     Object.values(corresponding).forEach((value) => {
       if (!smoothMorphTarget) {
         nodes.Wolf3D_Head.morphTargetInfluences[
@@ -80,60 +77,71 @@ export function Avatar(props) {
           nodes.Wolf3D_Head.morphTargetDictionary[value]
         ] = THREE.MathUtils.lerp(
           nodes.Wolf3D_Head.morphTargetInfluences[
-            nodes.Wolf3D_Head.morphTargetDictionary[value]
+          nodes.Wolf3D_Head.morphTargetDictionary[value]
           ],
           0,
           morphTargetSmoothing
         );
-  
+
         nodes.Wolf3D_Teeth.morphTargetInfluences[
           nodes.Wolf3D_Teeth.morphTargetDictionary[value]
         ] = THREE.MathUtils.lerp(
           nodes.Wolf3D_Teeth.morphTargetInfluences[
-            nodes.Wolf3D_Teeth.morphTargetDictionary[value]
+          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
           ],
           0,
           morphTargetSmoothing
         );
       }
     });
-  
-    // Iterate over the mouthCues to apply morph target influences for current phoneme
-    for (let i = 0; i < lipsync.phonemes.length; i++) {
-      const phoneme = lipsync.phonemes[i];
-      
-      if (currentAudioTime >= phoneme.start && currentAudioTime <= phoneme.end) {
-        const viseme = ipaToViseme[phoneme.phoneme] || ipaToViseme["default"];
-  
+
+    for (let i = 0; i < lipsync.mouthCues.length; i++) {
+      const mouthCue = lipsync.mouthCues[i];
+      if (
+        currentAudioTime >= mouthCue.start &&
+        currentAudioTime <= mouthCue.end
+      ) {
         if (!smoothMorphTarget) {
           nodes.Wolf3D_Head.morphTargetInfluences[
-            nodes.Wolf3D_Head.morphTargetDictionary[viseme]
+            nodes.Wolf3D_Head.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
           ] = 1;
           nodes.Wolf3D_Teeth.morphTargetInfluences[
-            nodes.Wolf3D_Teeth.morphTargetDictionary[viseme]
+            nodes.Wolf3D_Teeth.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
           ] = 1;
         } else {
           nodes.Wolf3D_Head.morphTargetInfluences[
-            nodes.Wolf3D_Head.morphTargetDictionary[viseme]
+            nodes.Wolf3D_Head.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
           ] = THREE.MathUtils.lerp(
             nodes.Wolf3D_Head.morphTargetInfluences[
-              nodes.Wolf3D_Head.morphTargetDictionary[viseme]
+            nodes.Wolf3D_Head.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
             ],
             1,
             morphTargetSmoothing
           );
           nodes.Wolf3D_Teeth.morphTargetInfluences[
-            nodes.Wolf3D_Teeth.morphTargetDictionary[viseme]
+            nodes.Wolf3D_Teeth.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
           ] = THREE.MathUtils.lerp(
             nodes.Wolf3D_Teeth.morphTargetInfluences[
-              nodes.Wolf3D_Teeth.morphTargetDictionary[viseme]
+            nodes.Wolf3D_Teeth.morphTargetDictionary[
+            corresponding[mouthCue.value]
+            ]
             ],
             1,
             morphTargetSmoothing
           );
         }
-  
-        break; // Exit loop once the correct phoneme is found
+
+        break;
       }
     }
   });
@@ -146,7 +154,7 @@ export function Avatar(props) {
     nodes.Wolf3D_Teeth.morphTargetInfluences[
       nodes.Wolf3D_Teeth.morphTargetDictionary["viseme_I"]
     ] = 1;
-    if (2) {
+    if (playAudio) {
       audio.play();
       if (script === "welcome") {
         setAnimation("Greeting");
