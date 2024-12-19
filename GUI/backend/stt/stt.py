@@ -68,4 +68,4 @@ def process_speech(directory):
             return None  # Return None if there's a request error
 
 # Example usage
-process_speech(directory=r'C:\Users\exter\Desktop\Study\Game Dev\SEECS-AI-Receptionist\queries')
+process_speech(directory=r'F:\Uni Stuff\5th Sem\AI\Project\SEECS-AI-Receptionist\queries')
