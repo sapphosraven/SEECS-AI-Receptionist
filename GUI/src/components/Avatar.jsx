@@ -1,8 +1,7 @@
-// Updated React Frontend (Avatar Component)
-import { useAnimations, useFBX, useGLTF } from "@react-three/drei";
-import { useFrame, useLoader } from "@react-three/fiber";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState, useRef} from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { useGLTF } from "@react-three/drei";
 
 const corresponding = {
   A: "viseme_PP",
@@ -17,231 +16,128 @@ const corresponding = {
 };
 
 export function Avatar(props) {
-  const playAudio = true;
-  const script = "welcome";
-  const headFollow = true;
-  const smoothMorphTarget = true;
-  const morphTargetSmoothing = 0.5;
-
+  const group = useRef();
   const [audio, setAudio] = useState(null);
   const [lipsync, setLipsync] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isReady, setIsReady] = useState(false); // Track if both audio and lipsync data are ready
+  const [lastReceivedFile, setLastReceivedFile] = useState(null); // Track the last received file
+  const { nodes, materials } = useGLTF("/models/673fb6204788fd52690ac86e.glb");
 
+  // WebSocket setup to listen for new files
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/get-file");
-        const data = await response.json();
+    const socket = new WebSocket("ws://localhost:5000");
 
-        if (data.audioFile && data.jsonData) {
-          setAudio(new Audio(data.audioFile));
-          setLipsync(data.jsonData);
-        }
-      } catch (error) {
-        console.error("Error fetching file data:", error);
+    socket.onopen = () => {
+      console.log("Connected to WebSocket server");
+    };
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log(data);
+
+      // Check if the audio or lipsync data has changed
+      if (data.audioFile && data.jsonData && data.audioFile !== lastReceivedFile) {
+        // If the new file is different from the last received file, process it
+        setLastReceivedFile(data.audioFile);
+
+        // Set audio
+        const newAudio = new Audio(data.audioFile);
+        setAudio(newAudio);
+
+        // Set lipsync data
+        setLipsync(data.jsonData);
+
+        // Once both are set, mark as ready
+        setIsReady(true);
       }
     };
 
-    fetchData();
-  }, []);
+    socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
 
+    socket.onclose = () => {
+      console.log("WebSocket connection closed");
+    };
+
+    // Cleanup on component unmount
+    return () => {
+      socket.close();
+    };
+  }, [lastReceivedFile]); // Add `lastReceivedFile` to dependencies to re-run when it changes
+
+// Handle audio playback and lip sync
+useEffect(() => {
+  console.log("is Ready " + isReady);
+  console.log("is Playing " + isPlaying);
+  if (isReady && !isPlaying && audio) {
+    // Check if the new audio file is different from the previous one
+    if (audio.src !== lastReceivedFile) {
+      setIsPlaying(true);
+      audio.play().catch((err) => console.error("Error playing audio:", err));
+      audio.onended = () => setIsPlaying(false); // Reset the state after audio ends
+
+      // Update the last received file to the current one
+      setLastReceivedFile(audio.src);
+    }
+  }
+}, [isReady, audio, isPlaying, lastReceivedFile]); // Add `lastReceivedFile` to dependencies to ensure it's updated correctly
+
+
+  // Frame updates for lip-syncing
   useFrame(() => {
-    if (!audio || !lipsync) return;
+    if (!audio || !lipsync || !isPlaying) return;
 
     const currentAudioTime = audio.currentTime;
-    if (audio.paused || audio.ended) {
-      setAnimation("Idle");
-      return;
-    }
 
-    Object.values(corresponding).forEach((value) => {
-      if (!smoothMorphTarget) {
-        nodes.Wolf3D_Head.morphTargetInfluences[
-          nodes.Wolf3D_Head.morphTargetDictionary[value]
-        ] = 0;
-        nodes.Wolf3D_Teeth.morphTargetInfluences[
-          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
-        ] = 0;
-      } else {
-        nodes.Wolf3D_Head.morphTargetInfluences[
-          nodes.Wolf3D_Head.morphTargetDictionary[value]
-        ] = THREE.MathUtils.lerp(
-          nodes.Wolf3D_Head.morphTargetInfluences[
-            nodes.Wolf3D_Head.morphTargetDictionary[value]
-          ],
-          0,
-          morphTargetSmoothing
-        );
-
-        nodes.Wolf3D_Teeth.morphTargetInfluences[
-          nodes.Wolf3D_Teeth.morphTargetDictionary[value]
-        ] = THREE.MathUtils.lerp(
-          nodes.Wolf3D_Teeth.morphTargetInfluences[
-            nodes.Wolf3D_Teeth.morphTargetDictionary[value]
-          ],
-          0,
-          morphTargetSmoothing
-        );
-      }
-    });
-
-    for (let i = 0; i < lipsync.mouthCues.length; i++) {
-      const mouthCue = lipsync.mouthCues[i];
-      if (
-        currentAudioTime >= mouthCue.start &&
-        currentAudioTime <= mouthCue.end
-      ) {
-        if (!smoothMorphTarget) {
-          nodes.Wolf3D_Head.morphTargetInfluences[
-            nodes.Wolf3D_Head.morphTargetDictionary[
-              corresponding[mouthCue.value]
-            ]
-          ] = 1;
-          nodes.Wolf3D_Teeth.morphTargetInfluences[
-            nodes.Wolf3D_Teeth.morphTargetDictionary[
-              corresponding[mouthCue.value]
-            ]
-          ] = 1;
-        } else {
-          nodes.Wolf3D_Head.morphTargetInfluences[
-            nodes.Wolf3D_Head.morphTargetDictionary[
-              corresponding[mouthCue.value]
-            ]
-          ] = THREE.MathUtils.lerp(
-            nodes.Wolf3D_Head.morphTargetInfluences[
-              nodes.Wolf3D_Head.morphTargetDictionary[
-                corresponding[mouthCue.value]
-              ]
-            ],
-            1,
-            morphTargetSmoothing
-          );
-          nodes.Wolf3D_Teeth.morphTargetInfluences[
-            nodes.Wolf3D_Teeth.morphTargetDictionary[
-              corresponding[mouthCue.value]
-            ]
-          ] = THREE.MathUtils.lerp(
-            nodes.Wolf3D_Teeth.morphTargetInfluences[
-              nodes.Wolf3D_Teeth.morphTargetDictionary[
-                corresponding[mouthCue.value]
-              ]
-            ],
-            1,
-            morphTargetSmoothing
+    // Reset morph targets for the head node
+    const headNode = nodes.Wolf3D_Head;
+    if (headNode?.morphTargetInfluences) {
+      Object.values(corresponding).forEach((key) => {
+        const index = headNode.morphTargetDictionary[key];
+        if (index !== undefined) {
+          headNode.morphTargetInfluences[index] = THREE.MathUtils.lerp(
+            headNode.morphTargetInfluences[index],
+            0,
+            0.5
           );
         }
+      });
 
-        break;
-      }
-    }
-  });
-
-  useEffect(() => {
-    if (audio) {
-      audio.play();
-      setAnimation("Greeting");
-    } else {
-      setAnimation("Idle");
-    }
-  }, [audio]);
-
-  const { nodes, materials } = useGLTF("/models/673fb6204788fd52690ac86e.glb");
-  const { animations: idleAnimation } = useFBX("/animations/Idle.fbx");
-  const { animations: angryAnimation } = useFBX(
-    "/animations/Angry Gesture.fbx"
-  );
-  const { animations: greetingAnimation } = useFBX(
-    "/animations/Standing Greeting.fbx"
-  );
-
-  idleAnimation[0].name = "Idle";
-  angryAnimation[0].name = "Angry";
-  greetingAnimation[0].name = "Greeting";
-  const [animation, setAnimation] = useState("Idle");
-
-  const group = useRef();
-  const { actions } = useAnimations(
-    [idleAnimation[0], angryAnimation[0], greetingAnimation[0]],
-    group
-  );
-
-  useEffect(() => {
-    actions[animation].reset().fadeIn(0.5).play();
-    return () => actions[animation].fadeOut(0.5);
-  }, [animation]);
-
-  useFrame((state) => {
-    if (headFollow) {
-      group.current.getObjectByName("Head").lookAt(state.camera.position);
+      // Apply active morph target based on audio time
+      lipsync.mouthCues.forEach((cue) => {
+        if (currentAudioTime >= cue.start && currentAudioTime <= cue.end) {
+          const index = headNode.morphTargetDictionary[corresponding[cue.value]];
+          if (index !== undefined) {
+            headNode.morphTargetInfluences[index] = 1;
+          }
+        }
+      });
     }
   });
 
   return (
     <group {...props} dispose={null} ref={group}>
       <primitive object={nodes.Hips} />
-      <skinnedMesh
-        geometry={nodes.Wolf3D_Body.geometry}
-        material={materials.Wolf3D_Body}
-        skeleton={nodes.Wolf3D_Body.skeleton}
-      />
-      <skinnedMesh
-        geometry={nodes.Wolf3D_Outfit_Bottom.geometry}
-        material={materials.Wolf3D_Outfit_Bottom}
-        skeleton={nodes.Wolf3D_Outfit_Bottom.skeleton}
-      />
-      <skinnedMesh
-        geometry={nodes.Wolf3D_Outfit_Footwear.geometry}
-        material={materials.Wolf3D_Outfit_Footwear}
-        skeleton={nodes.Wolf3D_Outfit_Footwear.skeleton}
-      />
-      <skinnedMesh
-        geometry={nodes.Wolf3D_Outfit_Top.geometry}
-        material={materials.Wolf3D_Outfit_Top}
-        skeleton={nodes.Wolf3D_Outfit_Top.skeleton}
-      />
-      <skinnedMesh
-        name="EyeLeft"
-        geometry={nodes.EyeLeft.geometry}
-        material={materials.Wolf3D_Eye}
-        skeleton={nodes.EyeLeft.skeleton}
-        morphTargetDictionary={nodes.EyeLeft.morphTargetDictionary}
-        morphTargetInfluences={nodes.EyeLeft.morphTargetInfluences}
-      />
-      <skinnedMesh
-        name="EyeRight"
-        geometry={nodes.EyeRight.geometry}
-        material={materials.Wolf3D_Eye}
-        skeleton={nodes.EyeRight.skeleton}
-        morphTargetDictionary={nodes.EyeRight.morphTargetDictionary}
-        morphTargetInfluences={nodes.EyeRight.morphTargetInfluences}
-      />
-      <skinnedMesh
-        name="Wolf3D_Head"
-        geometry={nodes.Wolf3D_Head.geometry}
-        material={materials.Wolf3D_Skin}
-        skeleton={nodes.Wolf3D_Head.skeleton}
-        morphTargetDictionary={nodes.Wolf3D_Head.morphTargetDictionary}
-        morphTargetInfluences={nodes.Wolf3D_Head.morphTargetInfluences}
-      />
-      <skinnedMesh
-        name="Wolf3D_Hair"
-        geometry={nodes.Wolf3D_Hair.geometry}
-        material={materials.Wolf3D_Hair}
-        skeleton={nodes.Wolf3D_Hair.skeleton}
-        morphTargetDictionary={nodes.Wolf3D_Hair.morphTargetDictionary}
-        morphTargetInfluences={nodes.Wolf3D_Hair.morphTargetInfluences}
-      />
-      <skinnedMesh
-        name="Wolf3D_Teeth"
-        geometry={nodes.Wolf3D_Teeth.geometry}
-        material={materials.Wolf3D_Teeth}
-        skeleton={nodes.Wolf3D_Teeth.skeleton}
-        morphTargetDictionary={nodes.Wolf3D_Teeth.morphTargetDictionary}
-        morphTargetInfluences={nodes.Wolf3D_Teeth.morphTargetInfluences}
-      />
+      {Object.entries(nodes).map(([name, node]) => {
+        if (node.isSkinnedMesh) {
+          return (
+            <skinnedMesh
+              key={name}
+              name={name}
+              geometry={node.geometry}
+              material={materials[node.material.name]}
+              skeleton={node.skeleton}
+              morphTargetDictionary={node.morphTargetDictionary}
+              morphTargetInfluences={node.morphTargetInfluences}
+            />
+          );
+        }
+        return null;
+      })}
     </group>
   );
 }
 
-useGLTF.preload(
-  "https://models.readyplayer.me/65a8dba831b23abb4f401bae.glb?lod=2&textureAtlas=none"
-);
+useGLTF.preload("/models/673fb6204788fd52690ac86e.glb");

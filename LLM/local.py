@@ -105,5 +105,5 @@ def start_watching(directory):
     observer.join()
 
 # Example usage
-directory_to_watch = r"F:\Uni Stuff\5th Sem\AI\Project\SEECS-AI-Receptionist\queries"  # Path to the directory you want to watch
+directory_to_watch = r"C:\Users\exter\Desktop\Study\Game Dev\SEECS-AI-Receptionist\LLM\local.py"  # Path to the directory you want to watch
 start_watching(directory_to_watch)

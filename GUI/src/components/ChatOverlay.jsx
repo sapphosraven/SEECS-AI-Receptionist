@@ -15,7 +15,6 @@ function ChatOverlay() {
       }, 1000); // Simulate 1s delay
     });
   };
-  const isThinking = false;
   const handleSend = async () => {
     if (!input.trim() || isWaitingForResponse) return;
 
@@ -28,7 +27,6 @@ function ChatOverlay() {
     const botResponse = await getChatbotResponse(input);
     setHistory((prev) => [...prev, botResponse]); // Add bot response to history
     setIsWaitingForResponse(false); // Allow further input
-    isThinking = true;
   };
 
   const handleMicClick = async () => {
@@ -128,11 +126,6 @@ function ChatOverlay() {
               className="h-6 w-6"
               />
           )}
-          {isThinking && (
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-200 p-3 rounded-full shadow-lg text-center">
-          <span className="text-sm text-black">...</span>
-        </div>
-      )}
         </button>
       </div>
     </div>
