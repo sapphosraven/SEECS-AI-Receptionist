@@ -8,8 +8,7 @@ import React, { createContext, useState } from "react";
 export const AnimationContext = createContext();
 
 function App() {
-  const [isThinking, setIsThinking] = useState(); // State to track thinking animation
-
+  const [isThinking, setIsThinking] = useState(false); // State to track thinking animation
   return (
     <AnimationContext.Provider value={{ isThinking, setIsThinking }}>
       <div style={{ position: "relative", width: "100vw", height: "100vh" }}>

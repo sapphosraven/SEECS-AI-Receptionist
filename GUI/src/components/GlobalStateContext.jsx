@@ -7,7 +7,7 @@ export const GlobalStateProvider = ({ children }) => {
 
     return (
         <GlobalStateContext.Provider value={{ isThinking, setIsThinking }}>
-            {children}
+            {children}  
         </GlobalStateContext.Provider>
     );
 };

@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AnimationContext } from "../App"; // Import the context
 
 function ChatOverlay() {
   const [showHistory, setShowHistory] = useState(false);
-  const [history, setHistory] = useState([]); // Stores chat history
-  const [input, setInput] = useState(""); // Input value
-  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false); // Tracks if waiting for response
-  const [isMicActive, setIsMicActive] = useState(false); // Tracks if mic is active (recording)
- 
-  // Simulates chatbot response (replace with actual API call if needed)
+  const [history, setHistory] = useState([]);
+  const [input, setInput] = useState("");
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
+  const [isMicActive, setIsMicActive] = useState(false);
+  const { setIsThinking } = useContext(AnimationContext); // Access the context
   const getChatbotResponse = (userMessage) => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -15,62 +15,52 @@ function ChatOverlay() {
       }, 1000); // Simulate 1s delay
     });
   };
+
   const handleSend = async () => {
     if (!input.trim() || isWaitingForResponse) return;
 
     const userMessage = `User: ${input}`;
-    setHistory((prev) => [...prev, userMessage]); // Add user message to history
-    setInput(""); // Clear input
-    setIsWaitingForResponse(true); // Block further input
+    setHistory((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsWaitingForResponse(true);
 
-    // Fetch chatbot response
     const botResponse = await getChatbotResponse(input);
-    setHistory((prev) => [...prev, botResponse]); // Add bot response to history
-    setIsWaitingForResponse(false); // Allow further input
+    setHistory((prev) => [...prev, botResponse]);
+    setIsWaitingForResponse(false);
   };
 
   const handleMicClick = async () => {
     try {
-      setIsMicActive(true); // Set mic active state when clicked
-      // Send a POST request to the backend API
+      setIsMicActive(true);
       const response = await fetch("http://localhost:5000/api/run-stt", { method: "POST" });
-
-      // Check if the response is successful
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Parse the JSON response
       const data = await response.json();
-
-      // Set the transcription as input, if available
       if (data.transcription) {
-        console.log(data.transcription)
-      } else {
-        console.warn("No transcription received from backend.");
+        console.log(data.transcription);
       }
+      setIsThinking(true); // Trigger thinking animation on mic click
+
     } catch (error) {
       console.error("Error running STT:", error);
     } finally {
-      setIsMicActive(false); // Reset mic state after processing
+      setIsMicActive(false);
     }
   };
 
   return (
     <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-end items-start pointer-events-none">
-      {/* History Panel */}
       <div
-        className={`absolute top-0 left-0 h-full bg-white text-black flex flex-col items-center p-2 shadow-lg pointer-events-auto transition-transform duration-300 ${showHistory ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`absolute top-0 left-0 h-full bg-white text-black flex flex-col items-center p-2 shadow-lg pointer-events-auto transition-transform duration-300 ${showHistory ? "translate-x-0" : "-translate-x-full"}`}
         style={{ width: "20%" }}
       >
-        <img src="../../public/textures/nust-seecs.png" alt="NUST SEECS" />
         <div className="mt-5 flex flex-col w-full px-2 overflow-y-auto">
           {history.map((message, index) => (
             <div
               key={index}
-              className={`mb-2 p-2 rounded cursor-pointer text-sm max-w-[90%] ${message.startsWith("User:") ? "bg-blue-500 text-white self-end" : "bg-gray-200 text-black self-start"
-                }`}
+              className={`mb-2 p-2 rounded cursor-pointer text-sm max-w-[90%] ${message.startsWith("User:") ? "bg-blue-500 text-white self-end" : "bg-gray-200 text-black self-start"}`}
             >
               {message.replace("User: ", "").replace("AI: ", "")}
             </div>
@@ -78,22 +68,17 @@ function ChatOverlay() {
         </div>
       </div>
 
-      {/* Toggle Button */}
       <button
-        className={`absolute top-2 transition-transform duration-300 ${showHistory ? "translate-x-[80px]" : "translate-x-0"
-          } bg-blue-900 text-white px-4 py-2 rounded shadow-md cursor-pointer pointer-events-auto`}
-        style={{ left: "20px" }} // Fixed position to anchor the slide
+        className={`absolute top-2 transition-transform duration-300 ${showHistory ? "translate-x-[80px]" : "translate-x-0"} bg-blue-900 text-white px-4 py-2 rounded shadow-md cursor-pointer pointer-events-auto`}
+        style={{ left: "20px" }}
         onClick={() => setShowHistory(!showHistory)}
       >
         {showHistory ? "Close" : "Chat Log"}
       </button>
 
-      {/* Chat Input and Mic Button Container */}
       <div
-        className={`absolute bottom-5 transition-transform duration-300 left-1/2 transform ${showHistory ? "-translate-x-[35%]" : "-translate-x-1/2"
-          } w-3/5 flex items-center gap-2 pointer-events-auto`}
+        className={`absolute bottom-5 transition-transform duration-300 left-1/2 transform ${showHistory ? "-translate-x-[35%]" : "-translate-x-1/2"} w-3/5 flex items-center gap-2 pointer-events-auto`}
       >
-        {/* Chat Input */}
         <div className="flex-1 h-12 flex items-center bg-white rounded-full shadow-md">
           <input
             type="text"
@@ -112,19 +97,14 @@ function ChatOverlay() {
           </button>
         </div>
 
-        {/* Mic Button */}
         <button
           onClick={handleMicClick}
           className={`h-12 w-12 rounded-full flex items-center justify-center shadow-md cursor-pointer ${isMicActive ? "bg-yellow-500 animate-pulse" : "bg-red-500"}`}
         >
           {isMicActive ? (
-            <div className="w-6 h-6 border-4 border-t-4 border-t-white border-red-500 rounded-full animate-spin"></div> // Spinner for active mic
+            <div className="w-6 h-6 border-4 border-t-4 border-t-white border-red-500 rounded-full animate-spin"></div>
           ) : (
-            <img
-              src="../../public/textures/mic.png"
-              alt="Mic"
-              className="h-6 w-6"
-              />
+            <img src="../../public/textures/mic.png" alt="Mic" className="h-6 w-6" />
           )}
         </button>
       </div>
