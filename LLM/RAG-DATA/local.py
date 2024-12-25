@@ -4,11 +4,19 @@ import pyttsx3
 import requests
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from langgraph_adaptive_rag import run_ai_receptionist
+from langgraph_adaptive_rag_final import run_ai_receptionist
 
 print("Local.py is running")
-def get_next_output_filename(directory=r"F:\Uni Stuff\5th Sem\AI\Project\SEECS-AI-Receptionist\GUI\public\audios"):
+def get_next_output_filename():
     """Get the next available filename for the audio output."""
+     # Dynamically resolve the absolute path
+    base_dir = os.path.dirname(os.path.abspath(__file__))  # Directory of the script
+    directory = os.path.abspath(os.path.join(base_dir, "..", "..", "GUI", "public", "audios"))
+    
+    if not os.path.exists(directory):
+        raise FileNotFoundError(f"The directory {directory} does not exist.")
+    
+    existing_files = os.listdir(directory)
     existing_files = os.listdir(directory)
     output_files = [f for f in existing_files if f.startswith('output_') and f.endswith('.wav')]
     

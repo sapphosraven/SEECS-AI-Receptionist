@@ -38,12 +38,17 @@
 
 from langchain.schema import HumanMessage
 from langchain_ollama import ChatOllama
-import torch 
+import torch
 
-# Initialize the Llama model
-#local_llm = "llama3.1:8b"
-#llm = ChatOllama(model=local_llm, temperature=0, device="cuda")
-#llm_json_mode = ChatOllama(model=local_llm, temperature=0, format="json", device="cuda")
+# Set GPU if available
+device = "cuda" if torch.cuda.is_available() else "cpu"
+torch.backends.cudnn.benchmark = True  # Optimize GPU performance for repetitive tasks
+
+# Initialize the LLM on GPU
+# Global instances for persistent usage
+local_llm = "llama3.1:8b"
+llm = ChatOllama(model=local_llm, temperature=0, device=device)
+llm_json_mode = ChatOllama(model=local_llm, temperature=0, format="json", device=device)
 
 # Test the LLM with a properly formatted message
 #message = [HumanMessage(content="What is the significance of AI in modern technology?")]
@@ -86,7 +91,6 @@ os.environ["TOKENIZERS_PARALLELISM"] = "true"
 # ### Vectorstore 
 
 # In[3]:
-
 import os
 import pickle
 import fitz  # PyMuPDF
@@ -107,9 +111,11 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 torch.backends.cudnn.benchmark = True  # Optimize GPU performance for repetitive tasks
 
 # Initialize the LLM on GPU
+# Global instances for persistent usage
 local_llm = "llama3.1:8b"
-llm = ChatOllama(model=local_llm, temperature=0, device=device)
-llm_json_mode = ChatOllama(model=local_llm, temperature=0, format="json", device=device)
+global_llm = ChatOllama(model=local_llm, temperature=0, device="cuda" if torch.cuda.is_available() else "cpu")
+global_llm_json_mode = ChatOllama(model=local_llm, temperature=0, format="json", device="cuda" if torch.cuda.is_available() else "cpu")
+
 
 # Function to load PDFs from a folder
 def load_pdfs_from_folder(folder_path):
@@ -161,7 +167,7 @@ def initialize_vectorstore():
     # Load cached embeddings or create new ones
     embeddings, cached_texts = load_embeddings()
     if embeddings is None or cached_texts != texts:
-        print("No cached embeddings found or texts have changed. Generating embeddings...")
+#        print("No cached embeddings found or texts have changed. Generating embeddings...")
         embedding_model = OllamaEmbeddings(model="llama3.1:8b")
         embeddings = embedding_model.embed_documents(texts)
         save_embeddings(embeddings, texts)  # Save the new embeddings
@@ -192,7 +198,7 @@ def initialize_vectorstore():
 # Function to load an existing vectorstore
 def load_vectorstore():
     """Load the FAISS vectorstore from disk."""
-    print("Loading vectorstore from disk...")
+#    print("Loading vectorstore from disk...")
 
     # Initialize the embedding model
     embedding_model = OllamaEmbeddings(model="llama3.1:8b")
@@ -218,13 +224,13 @@ def load_vectorstore():
     return vectorstore
 
 # Initialize or load the vectorstore
+# Retriever can also be made global to avoid repeated initialization
 if os.path.exists(VECTOR_STORE_INDEX_PATH) and os.path.exists(VECTOR_STORE_METADATA_PATH):
-    vectorstore = load_vectorstore()
+    global_vectorstore = load_vectorstore()
 else:
-    vectorstore = initialize_vectorstore()
+    global_vectorstore = initialize_vectorstore()
 
-# Set up the retriever
-retriever = vectorstore.as_retriever(k=3)
+global_retriever = global_vectorstore.as_retriever(k=3)
 
 '''
 # Initialize or load the FAISS vectorstore
@@ -457,22 +463,22 @@ Return JSON with a single key, datasource, that is 'websearch' or 'vectorstore' 
 """
 
 # Test router
-test_web_search = llm_json_mode.invoke(
-    [SystemMessage(content=router_instructions)]
-    + [
-        HumanMessage(
-            content="When do admissions open for the undergraduate programs at SEECS?"
-        )
-    ]
-)
-test_web_search_2 = llm_json_mode.invoke(
-    [SystemMessage(content=router_instructions)]
-    + [HumanMessage(content="What courses are offered at SEECS?")]
-)
-test_vector_store = llm_json_mode.invoke(
-    [SystemMessage(content=router_instructions)]
-    + [HumanMessage(content="What are the rules a student must follow?")]
-)
+#test_web_search = llm_json_mode.invoke(
+#    [SystemMessage(content=router_instructions)]
+#    + [
+ #       HumanMessage(
+  #          content="When do admissions open for the undergraduate programs at SEECS?"
+   #     )
+    #]
+#)
+#test_web_search_2 = llm_json_mode.invoke(
+ #   [SystemMessage(content=router_instructions)]
+  #  + [HumanMessage(content="What courses are offered at SEECS?")]
+#)
+#test_vector_store = llm_json_mode.invoke(
+ #   [SystemMessage(content=router_instructions)]
+  #  + [HumanMessage(content="What are the rules a student must follow?")]
+#)
 #print(
  #   json.loads(test_web_search.content),
   #  json.loads(test_web_search_2.content),
@@ -498,17 +504,17 @@ This carefully and objectively assess whether the document contains at least som
 Return JSON with single key, binary_score, that is 'yes' or 'no' score to indicate whether the document contains at least some information that is relevant to the question."""
 
 # Test
-question = "Tell me about the Computer Science department at SEECS."
-docs = retriever.invoke(question)
-doc_txt = docs[1].page_content
-doc_grader_prompt_formatted = doc_grader_prompt.format(
-    document=doc_txt, question=question
-)
-result = llm_json_mode.invoke(
-    [SystemMessage(content=doc_grader_instructions)]
-    + [HumanMessage(content=doc_grader_prompt_formatted)]
-)
-json.loads(result.content)
+#question = "Tell me about the Computer Science department at SEECS."
+#docs = retriever.invoke(question)
+#doc_txt = docs[1].page_content
+#doc_grader_prompt_formatted = doc_grader_prompt.format(
+#    document=doc_txt, question=question
+#)
+#result = llm_json_mode.invoke(
+#    [SystemMessage(content=doc_grader_instructions)]
+ #   + [HumanMessage(content=doc_grader_prompt_formatted)]
+#)
+#json.loads(result.content)
 
 
 # In[8]:
@@ -542,10 +548,10 @@ def format_docs(docs):
 
 
 # Test
-docs = retriever.invoke(question)
-docs_txt = format_docs(docs)
-rag_prompt_formatted = rag_prompt.format(context=docs_txt, question=question)
-generation = llm.invoke([HumanMessage(content=rag_prompt_formatted)])
+#docs = retriever.invoke(question)
+#docs_txt = format_docs(docs)
+#rag_prompt_formatted = rag_prompt.format(context=docs_txt, question=question)
+#generation = llm.invoke([HumanMessage(content=rag_prompt_formatted)])
 #print(generation.content)
 
 
@@ -583,15 +589,15 @@ Return JSON with two keys: binary_score ('yes' or 'no') to indicate whether the 
 """
 
 # Test using documents and generation from above
-hallucination_grader_prompt_formatted = hallucination_grader_prompt.format(
-    documents=docs_txt, generation=generation.content
-)
+#hallucination_grader_prompt_formatted = hallucination_grader_prompt.format(
+#    documents=docs_txt, generation=generation.content
+#)
 
 # Invoke the LLM
-result = llm_json_mode.invoke(
-    [SystemMessage(content=hallucination_grader_instructions)]
-    + [HumanMessage(content=hallucination_grader_prompt_formatted)]
-)
+#result = llm_json_mode.invoke(
+#    [SystemMessage(content=hallucination_grader_instructions)]
+#    + [HumanMessage(content=hallucination_grader_prompt_formatted)]
+#)
 
 # Parse the result
 #print(json.loads(result.content))
@@ -631,19 +637,19 @@ Return JSON with two keys: binary_score ('yes' or 'no') to indicate whether the 
 """
 
 # Test
-question = "What courses are offered at SEECS?"
-answer = "SEECS offers a variety of courses, including Computer Science, Software Engineering, Electrical Engineering, and Information Technology. It also provides specialized programs in AI and Data Science."
+#question = "What courses are offered at SEECS?"
+#answer = "SEECS offers a variety of courses, including Computer Science, Software Engineering, Electrical Engineering, and Information Technology. It also provides specialized programs in AI and Data Science."
 
 # Format the prompt using the question and answer
-answer_grader_prompt_formatted = answer_grader_prompt.format(
-    question=question, generation=answer
-)
+#answer_grader_prompt_formatted = answer_grader_prompt.format(
+#    question=question, generation=answer
+#)
 
 # Invoke the LLM
-result = llm_json_mode.invoke(
-    [SystemMessage(content=answer_grader_instructions)]
-    + [HumanMessage(content=answer_grader_prompt_formatted)]
-)
+#result = llm_json_mode.invoke(
+#    [SystemMessage(content=answer_grader_instructions)]
+#    + [HumanMessage(content=answer_grader_prompt_formatted)]
+#)
 
 # Parse the result
 #print(json.loads(result.content))
@@ -717,7 +723,7 @@ def retrieve(state):
     question = state["question"]
 
     # Write retrieved documents to documents key in state
-    documents = retriever.invoke(question)
+    documents = global_retriever.invoke(question)
     return {"documents": documents}
 
 
@@ -1139,7 +1145,7 @@ def model_inference(question: str) -> str:
 
 
 # Example question
-question = "Who are you?"
+#question = "Who are you?"
 
 # Run the AI receptionist and get the final output
 #response = run_ai_receptionist(question)
