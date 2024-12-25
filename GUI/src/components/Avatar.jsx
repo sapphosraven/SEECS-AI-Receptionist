@@ -44,13 +44,11 @@ export function Avatar(props) {
     group
   );
 
-
   useEffect(() => {
     actions[animation].reset().fadeIn(0.5).play();
     return () => actions[animation].fadeOut(0.5);
   }, [animation]);
 
-  
   // WebSocket setup to listen for new files
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:5000");
@@ -64,7 +62,11 @@ export function Avatar(props) {
       console.log(data);
 
       // Check if the audio or lipsync data has changed
-      if (data.audioFile && data.jsonData && data.audioFile !== lastReceivedFile) {
+      if (
+        data.audioFile &&
+        data.jsonData &&
+        data.audioFile !== lastReceivedFile
+      ) {
         setLastReceivedFile(data.audioFile);
 
         // Set audio
@@ -99,6 +101,7 @@ export function Avatar(props) {
       if (audio.src !== lastReceivedFile) {
         setIsPlaying(true);
         audio.play().catch((err) => console.error("Error playing audio:", err));
+        setIsThinking(false);
         audio.onended = () => setIsPlaying(false);
         setLastReceivedFile(audio.src);
       }
@@ -139,7 +142,8 @@ export function Avatar(props) {
       // Apply active morph target based on audio time
       lipsync.mouthCues.forEach((cue) => {
         if (currentAudioTime >= cue.start && currentAudioTime <= cue.end) {
-          const index = headNode.morphTargetDictionary[corresponding[cue.value]];
+          const index =
+            headNode.morphTargetDictionary[corresponding[cue.value]];
           if (index !== undefined) {
             headNode.morphTargetInfluences[index] = 1;
           }
@@ -213,7 +217,7 @@ export function Avatar(props) {
         morphTargetInfluences={nodes.Wolf3D_Teeth.morphTargetInfluences}
       />
     </group>
-    )
+  );
 }
 
 useGLTF.preload("/models/673fb6204788fd52690ac86e.glb");
