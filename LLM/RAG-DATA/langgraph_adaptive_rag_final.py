@@ -102,9 +102,9 @@ from langchain_ollama import OllamaEmbeddings, ChatOllama
 from langchain_community.vectorstores import FAISS
 
 # Paths for storing embeddings and metadata
-VECTOR_STORE_INDEX_PATH = r"F:\Uni Stuff\5th Sem\AI\Project\SEECS-AI-Receptionist\LLM\RAG-DATA\faiss_index"
-VECTOR_STORE_METADATA_PATH = r"F:\Uni Stuff\5th Sem\AI\Project\SEECS-AI-Receptionist\LLM\RAG-DATA\faiss_metadata.pkl"
-EMBEDDINGS_CACHE_PATH = r"F:\Uni Stuff\5th Sem\AI\Project\SEECS-AI-Receptionist\LLM\RAG-DATA\embeddings.pkl"
+VECTOR_STORE_INDEX_PATH = r"F:\Uni_Stuff\5th_Sem\AI\Project\SEECS-AI-Receptionist\LLM\RAG-DATA\faiss_index"
+VECTOR_STORE_METADATA_PATH = r"F:\Uni_Stuff\5th_Sem\AI\Project\SEECS-AI-Receptionist\LLM\RAG-DATA\faiss_metadata.pkl"
+EMBEDDINGS_CACHE_PATH = r"F:\Uni_Stuff\5th_Sem\AI\Project\SEECS-AI-Receptionist\LLM\RAG-DATA\embeddings.pkl"
 
 # Set GPU if available
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -156,7 +156,7 @@ def initialize_vectorstore():
 
 #    print("Initializing vectorstore...")
     # Load and process PDF documents
-    rag_data_folder = r"F:\Uni Stuff\5th Sem\AI\Project\SEECS-AI-Receptionist\LLM\RAG-DATA\RAG-DATA"
+    rag_data_folder = r"F:\Uni_Stuff\5th_Sem\AI\Project\SEECS-AI-Receptionist\LLM\RAG-DATA\RAG-DATA"
     pdf_docs = load_pdfs_from_folder(rag_data_folder)
 
     # Split documents into chunks

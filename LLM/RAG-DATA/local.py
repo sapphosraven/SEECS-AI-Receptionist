@@ -7,15 +7,9 @@ from watchdog.events import FileSystemEventHandler
 from langgraph_adaptive_rag_final import run_ai_receptionist
 
 print("Local.py is running")
-def get_next_output_filename():
+def get_next_output_filename(directory=r"F:\Uni_Stuff\5th_Sem\AI\Project\SEECS-AI-Receptionist\GUI\public\audios"):
     """Get the next available filename for the audio output."""
-     # Dynamically resolve the absolute path
-    base_dir = os.path.dirname(os.path.abspath(__file__))  # Directory of the script
-    directory = os.path.abspath(os.path.join(base_dir, "..", "..", "GUI", "public", "audios"))
-    
-    if not os.path.exists(directory):
-        raise FileNotFoundError(f"The directory {directory} does not exist.")
-    
+     
     existing_files = os.listdir(directory)
     existing_files = os.listdir(directory)
     output_files = [f for f in existing_files if f.startswith('output_') and f.endswith('.wav')]
@@ -68,8 +62,20 @@ class DirectoryEventHandler(FileSystemEventHandler):
         # Read the text from the new file
         with open(event.src_path, 'r') as file:
             query = file.read().strip()
-            query = query + "?"
-            query = query.capitalize()
+
+            # Perform the required transformations
+            query = query + "?"  # Add a question mark at the end
+            query = query.capitalize()  # Capitalize the first letter
+
+            # Replace specific phrases
+            query = query.replace("Doctor ", "Dr.")
+            query = query.replace("dr ", "Dr.")
+            query = query.replace("nust", "NUST")
+            query = query.replace("seeks", "SEECS")
+            query = query.replace("six", "SEECS")
+            query = query.replace("6", "SEECS")
+            query = query.replace("seeds", "SEECS")
+
             print(f"Query read from file: {query}")
         
         # Send the query to the LLM and get the response
@@ -98,5 +104,5 @@ def start_watching(directory):
     observer.join()
 
 # Example usage
-directory_to_watch = r"F:\Uni Stuff\5th Sem\AI\Project\SEECS-AI-Receptionist\queries"  # Path to the directory you want to watch
+directory_to_watch = r"F:\Uni_Stuff\5th_Sem\AI\Project\SEECS-AI-Receptionist\queries"  # Path to the directory you want to watch
 start_watching(directory_to_watch)

@@ -17,6 +17,32 @@ let lastSentFile = null; // Track the last file sent to clients
 // Create a WebSocket server
 const wss = new WebSocket.Server({ noServer: true });
 
+function readJsonFileWithRetries(filePath, retries = 10, delay = 100) {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+
+    const tryRead = () => {
+      try {
+        const fileContent = fs.readFileSync(filePath, "utf-8").trim();
+        if (fileContent) {
+          resolve(JSON.parse(fileContent)); // Attempt to parse JSON
+        } else {
+          throw new Error("File is empty");
+        }
+      } catch (err) {
+        if (attempts < retries) {
+          attempts++;
+          setTimeout(tryRead, delay);
+        } else {
+          reject(new Error(`Failed to read valid JSON after ${retries} attempts: ${err.message}`));
+        }
+      }
+    };
+
+    tryRead();
+  });
+}
+
 // Watch for new files in the directory
 fs.watch(DIRECTORY_TO_WATCH, (eventType, filename) => {
   if (eventType === "rename" && filename.endsWith(".json")) {
@@ -27,25 +53,32 @@ fs.watch(DIRECTORY_TO_WATCH, (eventType, filename) => {
     if (fs.existsSync(jsonFilePath) && fs.existsSync(wavFilePath)) {
       latestJsonFile = { jsonFilePath, wavFilePath };
 
-      // Notify all WebSocket clients that a new file has been added
+      // WebSocket notification code with error checking
       if (wss.clients.size > 0) {
         const newAudioFile = `/audios/${path.basename(latestJsonFile.wavFilePath)}`;
-        const jsonData = JSON.parse(fs.readFileSync(latestJsonFile.jsonFilePath, "utf-8"));
 
-        // Send data only if the file is new (not the last one sent)
-        if (newAudioFile !== lastSentFile) {
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(JSON.stringify({
-                audioFile: newAudioFile,
-                jsonData,
-              }));
+        // Use readJsonFileWithRetries function to read the JSON file
+        readJsonFileWithRetries(latestJsonFile.jsonFilePath, 20, 200)
+          .then((jsonData) => {
+            console.log("Successfully read JSON:", jsonData);
+            // Send data only if the file is new (not the last one sent)
+            if (newAudioFile !== lastSentFile) {
+              wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify({
+                    audioFile: newAudioFile,
+                    jsonData,
+                  }));
+                }
+              });
+
+              // Update the last sent file
+              lastSentFile = newAudioFile;
             }
+          })
+          .catch((err) => {
+            console.error("Error reading JSON file:", err.message);
           });
-
-          // Update the last sent file
-          lastSentFile = newAudioFile;
-        }
       }
     }
   }
@@ -59,13 +92,19 @@ wss.on("connection", (ws) => {
   if (latestJsonFile && lastSentFile) {
     const newAudioFile = `/audios/${path.basename(latestJsonFile.wavFilePath)}`;
     if (newAudioFile !== lastSentFile) {
-      ws.send(JSON.stringify({
-        audioFile: newAudioFile,
-        jsonData: JSON.parse(fs.readFileSync(latestJsonFile.jsonFilePath, "utf-8")),
-      }));
+      readJsonFileWithRetries(latestJsonFile.jsonFilePath, 20, 200)
+        .then((jsonData) => {
+          ws.send(JSON.stringify({
+            audioFile: newAudioFile,
+            jsonData,
+          }));
 
-      // Update the last sent file
-      lastSentFile = newAudioFile;
+          // Update the last sent file
+          lastSentFile = newAudioFile;
+        })
+        .catch((err) => {
+          console.error("Error reading JSON file:", err.message);
+        });
     }
   }
 });
