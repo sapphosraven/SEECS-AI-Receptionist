@@ -1,0 +1,21 @@
+name: seecs-ai-receptionist
+channels:
+  - defaults
+  - pytorch
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy
+  - matplotlib
+  - torch
+  - torchaudio
+  - pyttsx3
+  - phonemizer
+  - pydub
+  - fairseq
+  - gtts
+  - transformers
+  - faiss-gpu
+  - pip
+  - pip:
+      - -r requirements.txt

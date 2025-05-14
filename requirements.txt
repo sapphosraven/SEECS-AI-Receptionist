@@ -1,0 +1,16 @@
+# Python requirements for SEECS-AI-Receptionist
+# Core dependencies
+numpy
+matplotlib
+torch
+torchaudio
+pyttsx3
+phonemizer
+pydub
+fairseq
+gtts
+transformers
+# Add any additional project-specific dependencies below
+
+# For vector search with GPU support (install via conda):
+# conda install -c pytorch faiss-gpu
