@@ -79,7 +79,7 @@ class DirectoryEventHandler(FileSystemEventHandler):
             print(f"Query read from file: {query}")
         
         # Send the query to the LLM and get the response
-        response = run_ai_receptionist(query)
+        response = run_ai_receptionist(query, debug=True)
         print(f"Response from LLM: {response}")
         
         # Pass the response to the TTS function
